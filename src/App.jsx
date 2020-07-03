@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import './App.css';
 import { makeStyles } from '@material-ui/core/styles';
-import Fullscreen from "react-full-screen";
+import Fullscreen from 'react-full-screen';
+import PropTypes from 'prop-types';
 
 
 const useStyles = makeStyles(() => ({
@@ -21,8 +22,10 @@ const useStyles = makeStyles(() => ({
 	},
 
 	eye: {
-		backgroundColor: '#333',
-		borderRadius: '50%',
+		overflow: 'visible',
+	},
+
+	eyeBox: {
 		height: '2.5rem',
 		width: '2.5rem',
 	},
@@ -85,6 +88,16 @@ const useStyles = makeStyles(() => ({
 const App = () => {
 	const classes = useStyles();
 	const [useHeart, setUseHeart] = useState(false);
+	const [x, setX] = useState(0);
+	const [y, setY] = useState(0);
+	const faceRef = useRef(null);
+	const [fullscreen, setFullscreen] = useState(false);
+
+	const handleMouseMove = (event) => {
+		const rect = faceRef.current.getBoundingClientRect();
+		setX(event.clientX - rect.left);
+		setY(event.clientY - rect.top);
+	};
 
 	const heart = (
 		<svg className="heart" viewBox="0 0 32 29.6">
@@ -95,28 +108,53 @@ c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"
 		</svg>
 	);
 
-	const eye = <div className={classes.eye} />;
+	const renderEye = (cx, cy) => {
+		let ecx = cx;
+		if (x >= 0 && x <= 200) {
+			ecx = cx + x / 10;
+		} else if (x >= 200) {
+			ecx = cx + 20;
+		}
+
+		return (
+			<div className={classes.eyeBox}>
+				<svg className={classes.eye}>
+					<circle cx={ecx} cy={Math.min(cy + y / 10, 25)} r={25} fill="#333" />
+				</svg>
+			</div>
+		);
+	};
+
+
+	const face = <div
+		className={classes.face}
+		onClick={() => {
+			setUseHeart(!useHeart);
+		}}
+		ref={faceRef}
+	>
+		{useHeart ? heart : renderEye(0, 0)}
+		<div className={classes.mouth}>
+			<div className={classes.happy} />
+		</div>
+		{useHeart ? heart : renderEye(25, 0)}
+	</div>;
 
 	return (
 		<Fullscreen
-			enabled={true}
+			enabled={false}
 		>
-			<div className={classes.background}>
-				<div
-					className={classes.face}
-					onClick={() => {
-						setUseHeart(!useHeart);
-					}}
-				>
-					{useHeart ? heart : eye}
-					<div className={classes.mouth}>
-						<div className={classes.happy} />
-					</div>
-					{useHeart ? heart : eye}
-				</div>
+			<div className={classes.background} onClick={() => { setFullscreen(!fullscreen); }} onMouseMove={handleMouseMove} >
+				{face}
 			</div>
 		</Fullscreen>
 	);
+};
+
+App.propTypes = {
+	transcript: PropTypes.string.isRequired,
+	interimTranscript: PropTypes.string.isRequired,
+	resetTranscript: PropTypes.func.isRequired,
 };
 
 export default App;
