@@ -3,6 +3,7 @@ import './App.css';
 import { makeStyles } from '@material-ui/core/styles';
 import Fullscreen from 'react-full-screen';
 import PropTypes from 'prop-types';
+import SpeechRecognition from 'react-speech-recognition';
 
 const useStyles = makeStyles(() => ({
   background: {
@@ -84,7 +85,15 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const App = () => {
+const App = (props) => {
+  const {
+    transcript,
+    interimTranscript,
+    resetTranscript,
+    recognition,
+    listening,
+    startListening,
+  } = props;
   const classes = useStyles();
   const [useHeart, setUseHeart] = useState(false);
   const [x, setX] = useState(0);
@@ -140,6 +149,16 @@ c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"
     </div>
   );
 
+  recognition.onspeechend = () => {
+    console.log(transcript);
+    resetTranscript();
+  };
+
+  if (interimTranscript === '' && transcript !== '') {
+    console.log(transcript);
+    resetTranscript();
+  }
+
   return (
     <Fullscreen enabled={false}>
       <div
@@ -161,4 +180,8 @@ App.propTypes = {
   resetTranscript: PropTypes.func.isRequired,
 };
 
-export default App;
+const options = {
+  continuous: true,
+};
+
+export default SpeechRecognition(options)(App);
