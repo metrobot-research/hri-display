@@ -96,12 +96,19 @@ const cmdEyeInfo = new ROSLIB.Topic({
   messageType: 'dummy_package/EyeInfo',
 });
 
+const cmdMouthInfo = new ROSLIB.Topic({
+  ros: ros,
+  name: '/mouth_info',
+  messageType: 'std_msgs/String',
+});
+
 const App = () => {
   const classes = useStyles();
   const [useHeart, setUseHeart] = useState(false);
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
+  const [mouth, setMouth] = useState('smile');
 
   useEffect(() => {
     // Setup ROS callbacks
@@ -122,6 +129,12 @@ const App = () => {
       setX(message.eye_x);
       setY(message.eye_y);
     });
+
+    cmdMouthInfo.subscribe(function (message) {
+      console.log('Received message on ' + cmdMouthInfo.name);
+      setMouth(message.data);
+    });
+
     return () => {
       cmdEyeInfo.unsubscribe();
     };
@@ -162,7 +175,7 @@ c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"
     >
       {useHeart ? heart : renderEye(0, 0)}
       <div className={classes.mouth}>
-        <div className={classes.happy} />
+        <div className={classes[mouth]} />
       </div>
       {useHeart ? heart : renderEye(25, 0)}
     </div>
