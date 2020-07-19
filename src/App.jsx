@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { makeStyles } from '@material-ui/core/styles';
 import Fullscreen from 'react-full-screen';
 import PropTypes from 'prop-types';
+import ROSLIB from 'roslib';
 
 const useStyles = makeStyles(() => ({
   background: {
@@ -84,19 +85,47 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+// ROS Setup
+const ros = new ROSLIB.Ros({
+  url: 'ws://168.61.20.118:9090',
+});
+
+const cmdEyeInfo = new ROSLIB.Topic({
+  ros: ros,
+  name: '/eye_info',
+  messageType: 'dummy_package/EyeInfo',
+});
+
 const App = () => {
   const classes = useStyles();
   const [useHeart, setUseHeart] = useState(false);
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
-  const faceRef = useRef(null);
   const [fullscreen, setFullscreen] = useState(false);
 
-  const handleMouseMove = (event) => {
-    const rect = faceRef.current.getBoundingClientRect();
-    setX(event.clientX - rect.left);
-    setY(event.clientY - rect.top);
-  };
+  useEffect(() => {
+    // Setup ROS callbacks
+    ros.on('connection', function () {
+      console.log('Connected to websocket server.');
+    });
+
+    ros.on('error', function (error) {
+      console.log('Error connecting to websocket server: ', error);
+    });
+
+    ros.on('close', function () {
+      console.log('Connection to websocket server closed.');
+    });
+
+    cmdEyeInfo.subscribe(function (message) {
+      console.log('Received message on ' + cmdEyeInfo.name);
+      setX(message.eye_x);
+      setY(message.eye_y);
+    });
+    return () => {
+      cmdEyeInfo.unsubscribe();
+    };
+  }, []);
 
   const heart = (
     <svg className="heart" viewBox="0 0 32 29.6">
@@ -130,7 +159,6 @@ c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"
       onClick={() => {
         setUseHeart(!useHeart);
       }}
-      ref={faceRef}
     >
       {useHeart ? heart : renderEye(0, 0)}
       <div className={classes.mouth}>
@@ -147,7 +175,6 @@ c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"
         onClick={() => {
           setFullscreen(!fullscreen);
         }}
-        onMouseMove={handleMouseMove}
       >
         {face}
       </div>
