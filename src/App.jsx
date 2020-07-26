@@ -3,11 +3,8 @@ import './App.css';
 import { makeStyles } from '@material-ui/core/styles';
 import Fullscreen from 'react-full-screen';
 import PropTypes from 'prop-types';
-<<<<<<< HEAD
 import SpeechRecognition from 'react-speech-recognition';
-=======
 import ROSLIB from 'roslib';
->>>>>>> 484fc70c39dfa23a928c9f2eae91acf17c09fb25
 
 const useStyles = makeStyles(() => ({
   background: {
@@ -107,6 +104,12 @@ const cmdMouthInfo = new ROSLIB.Topic({
   messageType: 'std_msgs/String',
 });
 
+const cmdSpeechInfo = new ROSLIB.Topic({
+  ros: ros,
+  name: '/speech_info',
+  messageType: 'std_msgs/String',
+});
+
 const App = (props) => {
   const {
     transcript,
@@ -194,13 +197,12 @@ c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"
     </div>
   );
 
-  recognition.onspeechend = () => {
-    console.log(transcript);
-    resetTranscript();
-  };
-
   if (interimTranscript === '' && transcript !== '') {
     console.log(transcript);
+    var message = new ROSLIB.Message({
+      message: transcript
+    });
+    cmdSpeechInfo.publish(message);
     resetTranscript();
   }
 
