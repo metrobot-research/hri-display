@@ -3,6 +3,7 @@ import './App.css';
 import { makeStyles } from '@material-ui/core/styles';
 import Fullscreen from 'react-full-screen';
 import PropTypes from 'prop-types';
+import SpeechRecognition from 'react-speech-recognition';
 import ROSLIB from 'roslib';
 
 const useStyles = makeStyles(() => ({
@@ -85,6 +86,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+
 // ROS Setup
 const ros = new ROSLIB.Ros({
   url: 'ws://168.61.20.118:9090',
@@ -102,7 +104,21 @@ const cmdMouthInfo = new ROSLIB.Topic({
   messageType: 'std_msgs/String',
 });
 
-const App = () => {
+const cmdSpeechInfo = new ROSLIB.Topic({
+  ros: ros,
+  name: '/speech_info',
+  messageType: 'std_msgs/String',
+});
+
+const App = (props) => {
+  const {
+    transcript,
+    interimTranscript,
+    resetTranscript,
+    recognition,
+    listening,
+    startListening,
+  } = props;
   const classes = useStyles();
   const [useHeart, setUseHeart] = useState(false);
   const [x, setX] = useState(0);
@@ -181,6 +197,15 @@ c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"
     </div>
   );
 
+  if (interimTranscript === '' && transcript !== '') {
+    console.log(transcript);
+    var message = new ROSLIB.Message({
+      message: transcript
+    });
+    cmdSpeechInfo.publish(message);
+    resetTranscript();
+  }
+
   return (
     <Fullscreen enabled={false}>
       <div
@@ -201,4 +226,8 @@ App.propTypes = {
   resetTranscript: PropTypes.func.isRequired,
 };
 
-export default App;
+const options = {
+  continuous: true,
+};
+
+export default SpeechRecognition(options)(App);
