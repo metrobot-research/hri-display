@@ -10,11 +10,16 @@
     "eslint": "^6.6.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "eventemitter2": "^6.4.3",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-full-screen": "^0.2.4",
     "react-scripts": "3.4.1",
+<<<<<<< HEAD
     "react-speech-recognition": "^2.1.4"
+=======
+    "roslib": "^1.1.0"
+>>>>>>> 484fc70c39dfa23a928c9f2eae91acf17c09fb25
   },
   "scripts": {
     "start": "react-scripts start",
